@@ -16,11 +16,58 @@ from app.repositories.all_repositories import (
     AnomalyRepository,
     AuditRepository,
 )
+from app.core.bootstrap import ensure_master_catalog, trigger_index_recalculation
 from app.schemas.upload import (
     UploadPreviewResponse,
     UploadConfirmRequest,
     UploadConfirmResponse,
 )
+
+# Common aliases for Tamil Nadu grocery & mandi commodities
+ITEM_ALIASES = {
+    "tomato": "Tomato Local",
+    "tomato local": "Tomato Local",
+    "hybrid tomato": "Tomato Local",
+    "local tomato": "Tomato Local",
+    "onion": "Onion Sambhar",
+    "onion sambhar": "Onion Sambhar",
+    "small onion": "Onion Sambhar",
+    "red onion": "Onion Sambhar",
+    "bellary onion": "Onion Sambhar",
+    "potato": "Potato Jyoti",
+    "potato jyoti": "Potato Jyoti",
+    "green chilli": "Green Chilli",
+    "chilli": "Green Chilli",
+    "green chillies": "Green Chilli",
+    "rice": "Rice (Sona Masoori)",
+    "rice (sona masoori)": "Rice (Sona Masoori)",
+    "sona masoori": "Rice (Sona Masoori)",
+    "sona masoori rice": "Rice (Sona Masoori)",
+    "atta": "Atta (Whole Wheat)",
+    "atta (whole wheat)": "Atta (Whole Wheat)",
+    "wheat flour": "Atta (Whole Wheat)",
+    "wheat flour (atta)": "Atta (Whole Wheat)",
+    "tur dal": "Tur Dal (Arhar)",
+    "tur dal (arhar)": "Tur Dal (Arhar)",
+    "toor dal": "Tur Dal (Arhar)",
+    "toor dal (arhar)": "Tur Dal (Arhar)",
+    "arhar dal": "Tur Dal (Arhar)",
+    "moong dal": "Moong Dal",
+    "mustard oil": "Mustard Oil",
+    "sunflower oil": "Sunflower Oil",
+    "milk": "Milk (Pasteurized Toned)",
+    "milk (pasteurized toned)": "Milk (Pasteurized Toned)",
+    "pasteurised milk": "Milk (Pasteurized Toned)",
+    "pasteurized milk": "Milk (Pasteurized Toned)",
+    "curd": "Curd (Dahi)",
+    "curd (dahi)": "Curd (Dahi)",
+    "dahi": "Curd (Dahi)",
+    "garlic": "Garlic",
+    "dry ginger": "Dry Ginger",
+    "ginger": "Dry Ginger",
+    "sugar": "Sugar (Refined)",
+    "sugar (refined)": "Sugar (Refined)",
+}
 
 router = APIRouter(prefix="/uploads", tags=["CSV/Excel Upload Wizard"])
 
@@ -181,6 +228,9 @@ def confirm_upload(
     if not raw_records:
         raise AppException(code="STAGING_EXPIRED", message="Staged upload records expired. Please re-upload.", status_code=400)
 
+    # Ensure master catalog is present
+    ensure_master_catalog()
+
     # Pre-cache markets & items (lookup by ID and by Name for flexibility)
     all_markets = market_repo.find({})
     all_items = item_repo.find({})
@@ -216,9 +266,48 @@ def confirm_upload(
         u_val = str(row.get(unit_col, "")).strip()
         notes_val = str(row.get(notes_col, "")).strip() if notes_col else ""
 
-        # Resolve market and item by name or id
-        m_doc = market_map.get(m_val) or market_map.get(m_val.lower())
-        i_doc = item_map.get(i_val) or item_map.get(i_val.lower())
+        # 1. Resolve market (with alias + auto-provisioning)
+        m_lower = m_val.lower().strip()
+        m_doc = market_map.get(m_val) or market_map.get(m_lower)
+        if not m_doc:
+            for mk_name, mk_obj in market_map.items():
+                if m_lower and (m_lower in mk_name or mk_name in m_lower):
+                    m_doc = mk_obj
+                    break
+
+        if not m_doc and m_val:
+            dist = "Chennai"
+            if "madurai" in m_lower:
+                dist = "Madurai"
+            elif "coimbatore" in m_lower:
+                dist = "Coimbatore"
+            elif "salem" in m_lower:
+                dist = "Salem"
+
+            m_type = "wholesale" if any(w in m_lower for w in ["wholesale", "mandi", "terminal"]) else "retail"
+            m_doc = market_repo.insert({
+                "name": m_val,
+                "district": dist,
+                "market_type": m_type,
+                "active": True
+            })
+            market_map[m_val] = m_doc
+            market_map[m_lower] = m_doc
+
+        # 2. Resolve item (with alias mapping)
+        i_lower = i_val.lower().strip()
+        canonical_name = ITEM_ALIASES.get(i_lower, i_val)
+        i_doc = (
+            item_map.get(canonical_name)
+            or item_map.get(canonical_name.lower().strip())
+            or item_map.get(i_val)
+            or item_map.get(i_lower)
+        )
+        if not i_doc:
+            for it_name, it_obj in item_map.items():
+                if i_lower and (i_lower in it_name or it_name in i_lower):
+                    i_doc = it_obj
+                    break
 
         if not m_doc:
             rejected_errors.append({"row": row_num, "field": "market", "reason": f"Unknown market '{m_val}'", "raw": row})
@@ -324,6 +413,14 @@ def confirm_upload(
     # Clean in-memory cache
     if batch_id in _staging_rows_cache:
         del _staging_rows_cache[batch_id]
+
+    # Trigger automated Laspeyres index calculation cascade across all modules
+    if saved_count > 0:
+        try:
+            cascade_res = trigger_index_recalculation(current_user["email"])
+            logger.info(f"Auto-calculated index run post upload: {cascade_res}")
+        except Exception as e:
+            logger.warning(f"Index recalculation notice post-upload: {e}")
 
     audit_repo.log_event(
         actor=current_user["email"],

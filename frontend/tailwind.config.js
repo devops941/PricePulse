@@ -7,7 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        shelf: 'var(--shelf)',
+        shelf: {
+          DEFAULT: 'var(--shelf)',
+          base: 'var(--shelf)',
+          paper: '#FFFFFF',
+          muted: 'var(--muted)',
+        },
         tile: 'var(--tile)',
         ink: 'var(--ink)',
         muted: 'var(--muted)',

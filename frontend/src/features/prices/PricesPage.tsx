@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 
 export const PricesPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'quick' | 'grid' | 'upload' | 'records'>('grid');
+  const [activeTab, setActiveTab] = useState<'quick' | 'grid' | 'upload' | 'records'>('upload');
   const [markets, setMarkets] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
   const [records, setRecords] = useState<any[]>([]);
@@ -43,21 +43,21 @@ export const PricesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar with Segmented Switch (§10.6) */}
+      {/* Top Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-hairline pb-4">
         <div>
-          <h1 className="font-serif text-3xl text-ink font-normal">Price Observations</h1>
-          <p className="text-xs text-muted font-sans mt-0.5">
+          <h1 className="font-serif text-3xl text-cocoa font-bold">Price Observations</h1>
+          <p className="text-xs text-shelf-muted font-sans mt-0.5">
             Collect, validate, and inspect market prices across essential retail goods.
           </p>
         </div>
 
-        {/* Top Segmented Switch (§10.6) */}
-        <div className="flex items-center gap-1 bg-shelf p-1 rounded-lg border border-hairline overflow-x-auto">
+        {/* Top Segmented Tabs with prominent Upload Wizard */}
+        <div className="flex items-center gap-1.5 bg-shelf-paper p-1.5 rounded-xl border border-hairline shadow-xs overflow-x-auto">
           {[
-            { id: 'quick', label: 'Quick Form', icon: IconReceipt2 },
+            { id: 'upload', label: 'Upload Wizard (CSV / Excel)', icon: IconUpload },
             { id: 'grid', label: 'Weekly Grid', icon: IconFileSpreadsheet },
-            { id: 'upload', label: 'Upload Wizard', icon: IconUpload },
+            { id: 'quick', label: 'Quick Form', icon: IconReceipt2 },
             { id: 'records', label: 'Price Records', icon: IconTable },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -68,13 +68,13 @@ export const PricesPage: React.FC = () => {
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-sans transition-colors shrink-0',
+                  'flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-serif font-bold transition-all shrink-0',
                   isActive
-                    ? 'bg-cocoa text-white font-medium shadow-shelf'
-                    : 'text-muted hover:text-ink hover:bg-tile'
+                    ? 'bg-cocoa text-white shadow-xs'
+                    : 'text-shelf-muted hover:text-cocoa hover:bg-shelf-base'
                 )}
               >
-                <Icon size={14} />
+                <Icon size={15} />
                 <span>{tab.label}</span>
               </button>
             );

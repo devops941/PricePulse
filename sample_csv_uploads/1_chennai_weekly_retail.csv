@@ -1,0 +1,16 @@
+market,item,date,price,unit,source,notes
+Anna Nagar Retail Supermarket,Tomato Local,2026-10-20,32.00,kg,collector_app,Fresh harvest stock
+Anna Nagar Retail Supermarket,Onion Sambhar,2026-10-20,38.00,kg,collector_app,Grade A bellary onion
+Anna Nagar Retail Supermarket,Potato Jyoti,2026-10-20,28.00,kg,collector_app,Standard retail
+Anna Nagar Retail Supermarket,Rice (Sona Masoori),2026-10-20,54.00,kg,collector_app,Branded pack
+Anna Nagar Retail Supermarket,Atta (Whole Wheat),2026-10-20,42.00,kg,collector_app,Chakki fresh
+Anna Nagar Retail Supermarket,Tur Dal (Arhar),2026-10-20,152.00,kg,collector_app,Unpolished dal
+Anna Nagar Retail Supermarket,Sunflower Oil,2026-10-20,140.00,L,collector_app,Refined pouch
+Anna Nagar Retail Supermarket,Milk (Pasteurized Toned),2026-10-20,56.00,L,collector_app,Aavin blue packet
+T. Nagar Local Bazaar,Tomato Local,2026-10-20,30.00,kg,manual_quote,Evening bazaar quote
+T. Nagar Local Bazaar,Onion Sambhar,2026-10-20,36.00,kg,manual_quote,Small onion basket
+T. Nagar Local Bazaar,Green Chilli,2026-10-20,65.00,kg,manual_quote,Fresh local green chilli
+T. Nagar Local Bazaar,Moong Dal,2026-10-20,125.00,kg,manual_quote,Retail grocery quote
+T. Nagar Local Bazaar,Sugar (Refined),2026-10-20,44.00,kg,manual_quote,Standard crystal sugar
+T. Nagar Local Bazaar,Garlic,2026-10-20,195.00,kg,manual_quote,Local garlic quote
+T. Nagar Local Bazaar,Curd (Dahi),2026-10-20,64.00,kg,manual_quote,Fresh packaged curd

@@ -30,7 +30,13 @@ router = APIRouter(tags=["Master Data & Basket"])
 def list_markets(active_only: bool = False):
     repo = MarketRepository()
     query = {"active": True} if active_only else {}
-    return repo.find(query)
+    markets = repo.find(query)
+    for m in markets:
+        if "state" not in m:
+            m["state"] = "Tamil Nadu"
+        if "type" not in m:
+            m["type"] = m.get("market_type", "retail")
+    return markets
 
 
 @router.post("/markets", response_model=MarketOut)
@@ -111,6 +117,10 @@ def list_items(active_only: bool = False):
     items = item_repo.find(query)
     for it in items:
         it["category_name"] = cats.get(it.get("category_id", ""), "General")
+        if "min_plausible" not in it:
+            it["min_plausible"] = it.get("plausible_min", 1.0)
+        if "max_plausible" not in it:
+            it["max_plausible"] = it.get("plausible_max", 999.0)
     return items
 
 
@@ -216,3 +226,57 @@ def get_audit_logs(
 ):
     repo = AuditRepository()
     return repo.find({}, sort=[("created_at", -1)], limit=limit)
+
+
+# ----------------- BOOTSTRAP DEMO DATA -----------------
+@router.post("/bootstrap-demo-data")
+@router.post("/master/bootstrap-demo-data")
+def bootstrap_demo_data(
+    current_user: dict = Depends(require_roles("Admin"))
+):
+    """
+    Initializes 15 essential goods, 6 markets across 3 districts,
+    52 weeks of synthetic price series, and computes the initial official index run.
+    Preserves Super Admin credentials completely (§15, §16, §17).
+    """
+    from scripts.seed_demo import seed_database
+    seed_database(preserve_super_admin=True)
+
+    AuditRepository().log_event(
+        actor=current_user["email"],
+        action="BOOTSTRAP_DEMO_DATA_EXECUTED",
+        resource="system",
+        metadata={"triggered_by": current_user["email"]}
+    )
+
+    return {
+        "success": True,
+        "message": "Initialized 15 essential goods, 6 markets, 52 weeks of price series, and official Laspeyres index run."
+    }
+
+
+# ----------------- CLEAR OPERATIONAL DATA -----------------
+@router.post("/clear-operational-data")
+@router.post("/master/clear-operational-data")
+def clear_operational_data(
+    current_user: dict = Depends(require_roles("Admin"))
+):
+    """
+    Clears all operational price observations, index runs, anomalies, reports, and upload batches.
+    Preserves master catalog (15 goods, 6 markets, 7 categories, active basket) and Super Admin.
+    """
+    from scripts.clear_db import clear_database
+    clear_database()
+
+    AuditRepository().log_event(
+        actor=current_user["email"],
+        action="DATABASE_CLEARED",
+        resource="system",
+        metadata={"triggered_by": current_user["email"]}
+    )
+
+    return {
+        "success": True,
+        "message": "Database operational collections cleared properly. Master catalog and Super Admin preserved."
+    }
+

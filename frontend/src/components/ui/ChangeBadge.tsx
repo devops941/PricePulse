@@ -20,16 +20,17 @@ export const ChangeBadge: React.FC<ChangeBadgeProps> = ({
   showZeroAsSteady = true,
   size = 'md',
 }) => {
+  const safeVal = typeof value === 'number' && !isNaN(value) ? value : 0;
   let type: ChangeType = 'steady';
-  if (value > 0.0001) {
+  if (safeVal > 0.0001) {
     type = 'rise';
-  } else if (value < -0.0001) {
+  } else if (safeVal < -0.0001) {
     type = 'fall';
   }
 
   const glyph = type === 'rise' ? '▲' : type === 'fall' ? '▼' : '■';
   const prefix = type === 'rise' ? '+' : '';
-  const formattedVal = formatNumberIN(Math.abs(value), 2);
+  const formattedVal = formatNumberIN(Math.abs(safeVal), 2);
   const displayVal = type === 'fall' ? `-${formattedVal}` : `${prefix}${formattedVal}`;
 
   const colorStyles = {

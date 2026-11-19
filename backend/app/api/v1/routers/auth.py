@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import List, Optional, Dict, Any
 import secrets
 from fastapi import APIRouter, Depends, Request, status
 from app.core.config import get_settings
@@ -35,7 +36,8 @@ def login(req: LoginRequest, request: Request):
     audit_repo = AuditRepository()
     user = user_repo.get_by_email(req.email)
     
-    if not user or not verify_password(req.password, user.get("password_hash", "")):
+    stored_hash = user.get("password_hash") or user.get("hashed_password") or ""
+    if not user or not verify_password(req.password, stored_hash):
         audit_repo.log_event(
             actor=req.email,
             action="LOGIN_FAILED",
@@ -239,3 +241,56 @@ def register_user_by_admin(
         metadata={"role": req.role, "email": req.email}
     )
     return UserResponse(**created)
+
+
+@router.get("/users", response_model=List[UserResponse])
+def list_users(
+    admin_user: dict = Depends(require_roles("Admin"))
+):
+    """Admin-only listing of all system users."""
+    user_repo = UserRepository()
+    users = user_repo.find({})
+    res = []
+    for u in users:
+        res.append(UserResponse(
+            id=str(u.get("id", "")),
+            email=u.get("email", ""),
+            name=u.get("name", ""),
+            role=u.get("role", "Viewer"),
+            market_ids=u.get("market_ids", []),
+            status=u.get("status", "active"),
+            must_change_password=u.get("must_change_password", False)
+        ))
+    return res
+
+
+@router.patch("/users/{user_id}/status", response_model=UserResponse)
+def toggle_user_status(
+    user_id: str,
+    payload: dict,
+    admin_user: dict = Depends(require_roles("Admin"))
+):
+    """Admin-only toggle of user account active/inactive status."""
+    user_repo = UserRepository()
+    target = user_repo.get_by_id(user_id)
+    if not target:
+        raise AppException(code="NOT_FOUND", message="User not found", status_code=404)
+    
+    new_status = payload.get("status", "active")
+    updated = user_repo.update(user_id, {"status": new_status})
+    AuditRepository().log_event(
+        actor=admin_user["email"],
+        action="USER_STATUS_UPDATED",
+        resource=f"users/{user_id}",
+        metadata={"status": new_status, "target_email": target["email"]}
+    )
+    return UserResponse(
+        id=str(updated.get("id", user_id)),
+        email=updated.get("email", ""),
+        name=updated.get("name", ""),
+        role=updated.get("role", "Viewer"),
+        market_ids=updated.get("market_ids", []),
+        status=updated.get("status", "active"),
+        must_change_password=updated.get("must_change_password", False)
+    )
+

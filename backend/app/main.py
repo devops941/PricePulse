@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -15,9 +16,23 @@ from app.core.errors import (
     validation_exception_handler,
     generic_exception_handler
 )
-from app.api.v1.routers import health, auth, master, prices, uploads, index
+from app.api.v1.routers import health, auth, master, prices, uploads, index, markets, forecasts, anomalies, reports
 
 limiter = Limiter(key_func=get_remote_address)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from app.core.database import get_db, create_all_indexes
+        from app.core.bootstrap import ensure_master_catalog
+
+        db = get_db()
+        create_all_indexes(db)
+        ensure_master_catalog()
+    except Exception as e:
+        logger.warning(f"Startup bootstrap notice: {e}")
+    yield
 
 
 def create_app() -> FastAPI:
@@ -30,7 +45,8 @@ def create_app() -> FastAPI:
         version="1.0.0",
         docs_url="/api/docs",
         redoc_url="/api/redoc",
-        openapi_url="/api/openapi.json"
+        openapi_url="/api/openapi.json",
+        lifespan=lifespan
     )
 
     app.state.limiter = limiter
@@ -58,6 +74,15 @@ def create_app() -> FastAPI:
     app.include_router(prices.router, prefix="/api/v1")
     app.include_router(uploads.router, prefix="/api/v1")
     app.include_router(index.router, prefix="/api/v1")
+    app.include_router(markets.router, prefix="/api/v1")
+    app.include_router(forecasts.router, prefix="/api/v1")
+    app.include_router(anomalies.router, prefix="/api/v1")
+    app.include_router(reports.router, prefix="/api/v1")
+
+    # Top-level /dashboard aliases for frontend convenience
+    from app.api.v1.routers.index import get_dashboard_summary, get_dashboard_movers
+    app.add_api_route("/api/v1/dashboard/summary", get_dashboard_summary, methods=["GET"], tags=["Dashboard Analytics"])
+    app.add_api_route("/api/v1/dashboard/movers", get_dashboard_movers, methods=["GET"], tags=["Dashboard Analytics"])
 
     @app.get("/")
     def root():

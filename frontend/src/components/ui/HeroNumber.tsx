@@ -20,18 +20,19 @@ export const HeroNumber: React.FC<HeroNumberProps> = ({
   subtext,
   className,
 }) => {
-  const [displayValue, setDisplayValue] = useState<number>(value);
+  const safeValue = typeof value === 'number' && !isNaN(value) ? value : 0;
+  const [displayValue, setDisplayValue] = useState<number>(safeValue);
 
   useEffect(() => {
     // Respect prefers-reduced-motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplayValue(value);
+      setDisplayValue(safeValue);
       return;
     }
 
     const duration = 350; // 350ms from spec §10.4
     const startValue = displayValue;
-    const diff = value - startValue;
+    const diff = safeValue - startValue;
     const startTime = performance.now();
 
     let animationFrameId: number;
@@ -46,13 +47,13 @@ export const HeroNumber: React.FC<HeroNumberProps> = ({
       if (progress < 1) {
         animationFrameId = requestAnimationFrame(animate);
       } else {
-        setDisplayValue(value);
+        setDisplayValue(safeValue);
       }
     };
 
     animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [value]);
+  }, [safeValue]);
 
   return (
     <div className={cn('flex flex-col', className)}>

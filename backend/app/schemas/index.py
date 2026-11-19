@@ -47,6 +47,7 @@ class DashboardSummaryOut(BaseModel):
     data_freshness_days: int
     latest_observation_date: Optional[str] = None
     basket_version_name: str
+    has_data: bool = True
 
 
 class MoverItem(BaseModel):

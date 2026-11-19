@@ -6,6 +6,34 @@ from app.analytics.chain import calculate_chain_link, apply_chain_linking
 
 FORMULA_VERSION = "idx-v1"
 
+# Canonical baseline prices for essential consumer goods (§15)
+DEFAULT_ITEM_BASE_PRICES = {
+    "tomato": 28.0,
+    "tomato local": 28.0,
+    "onion": 32.0,
+    "onion sambhar": 32.0,
+    "potato": 24.0,
+    "potato jyoti": 24.0,
+    "green chilli": 60.0,
+    "rice": 52.0,
+    "rice (sona masoori)": 52.0,
+    "atta": 40.0,
+    "atta (whole wheat)": 40.0,
+    "tur dal": 145.0,
+    "tur dal (arhar)": 145.0,
+    "moong dal": 120.0,
+    "mustard oil": 160.0,
+    "sunflower oil": 135.0,
+    "milk": 54.0,
+    "milk (pasteurized toned)": 54.0,
+    "curd": 62.0,
+    "curd (dahi)": 62.0,
+    "garlic": 180.0,
+    "dry ginger": 190.0,
+    "sugar": 42.0,
+    "sugar (refined)": 42.0,
+}
+
 
 def compute_period_index(
     current_prices: Dict[str, float],
@@ -104,12 +132,31 @@ def build_full_series(
 
     # Aggregate base period prices
     base_obs = period_observations.get(base_period_key, [])
-    if not base_obs and sorted_periods:
-        # Fallback to first available period if base_period_key has no direct rows
-        base_period_key = sorted_periods[0]
-        base_obs = period_observations[base_period_key]
-
-    base_prices = aggregate_market_prices(base_obs, method=aggregation_method)
+    if base_obs:
+        base_prices = aggregate_market_prices(base_obs, method=aggregation_method)
+    else:
+        # Fallback to canonical reference catalog prices so items are never compared against themselves
+        from app.repositories.all_repositories import ItemRepository
+        item_repo = ItemRepository()
+        all_items = {i["id"]: i for i in item_repo.find({})}
+        base_prices = {}
+        for it_id in weights:
+            it_doc = all_items.get(it_id, {})
+            name_lower = str(it_doc.get("name", "")).lower().strip()
+            # 1. Stored base_price in item
+            p0 = it_doc.get("base_price")
+            # 2. Canonical dictionary
+            if not p0:
+                p0 = DEFAULT_ITEM_BASE_PRICES.get(name_lower)
+            # 3. Plausible midpoint
+            if not p0 and it_doc.get("min_plausible") and it_doc.get("max_plausible"):
+                p0 = (float(it_doc["min_plausible"]) + float(it_doc["max_plausible"])) / 2.0
+            # 4. If all else fails, use 94% of first observed price to avoid 1.0 division
+            if not p0 and sorted_periods:
+                first_obs = period_observations[sorted_periods[0]]
+                p_first = aggregate_market_prices(first_obs, method=aggregation_method)
+                p0 = round(p_first.get(it_id, 30.0) * 0.94, 2)
+            base_prices[it_id] = float(p0 or 30.0)
 
     series = []
     contributions_by_period = {}
@@ -119,6 +166,31 @@ def build_full_series(
     prev_index = 100.0
 
     lag_periods = 52 if frequency == "weekly" else 12
+
+    # If only 1 reporting period is present, prepend base anchor period at 100.00
+    if len(sorted_periods) == 1:
+        base_cost = sum(quantities.get(it, 1.0) * base_prices.get(it, 0.0) for it in weights)
+        series.append({
+            "period": base_period_key,
+            "index": 100.0,
+            "mom": 0.0,
+            "yoy": 0.0,
+            "coverage": 100.0,
+            "basket_cost": round(base_cost, 2),
+            "purchasing_power_100": 100.0,
+            "warnings": ["Base period anchor"]
+        })
+        base_contribs = {
+            it_id: {
+                "points": 0.0,
+                "percent": 0.0,
+                "relative_current": 1.0,
+                "relative_prev": 1.0,
+                "weight": round(w, 4)
+            } for it_id, w in weights.items()
+        }
+        contributions_by_period[base_period_key] = base_contribs
+        prev_index = 100.0
 
     for p_idx, p_key in enumerate(sorted_periods):
         obs_list = period_observations[p_key]
@@ -141,18 +213,18 @@ def build_full_series(
         )
 
         # Inflation MoM & YoY (§5.5)
-        mom = round(((idx_val / prev_index) - 1.0) * 100.0, 2) if p_idx > 0 else 0.0
+        mom = round(((idx_val / prev_index) - 1.0) * 100.0, 2) if (p_idx > 0 or len(sorted_periods) == 1) else 0.0
         
         yoy = None
         if p_idx >= lag_periods:
             yoy_base_idx = series[p_idx - lag_periods]["index"]
             yoy = round(((idx_val / yoy_base_idx) - 1.0) * 100.0, 2)
-        elif p_idx > 0:
+        elif p_idx > 0 or len(sorted_periods) == 1:
             # If full lag not yet reached, report change vs period 0
             yoy = round(((idx_val / 100.0) - 1.0) * 100.0, 2)
 
         # Contributions (§5.6)
-        if p_idx > 0:
+        if p_idx > 0 or len(sorted_periods) == 1:
             period_contribs = calculate_item_contributions(
                 relatives_t=relatives,
                 relatives_prev=prev_relatives,
@@ -160,6 +232,21 @@ def build_full_series(
                 index_prev=prev_index
             )
             contributions_by_period[p_key] = period_contribs
+        else:
+            # Base period allocation contribution vs anchor price (relative = 1.0)
+            base_contribs = {}
+            for it_id, w in weights.items():
+                rel = relatives.get(it_id, 1.0)
+                diff_pts = 100.0 * w * (rel - 1.0)
+                pct_chg = (rel - 1.0) * 100.0
+                base_contribs[it_id] = {
+                    "points": round(diff_pts, 3),
+                    "percent": round(pct_chg, 2),
+                    "relative_current": round(rel, 3),
+                    "relative_prev": 1.0,
+                    "weight": round(w, 4)
+                }
+            contributions_by_period[p_key] = base_contribs
 
         series.append({
             "period": p_key,

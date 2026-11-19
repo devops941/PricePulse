@@ -178,27 +178,29 @@ def get_dashboard_summary():
     days_since = 0
     obs_date = None
     if latest_obs:
-        obs_date = latest_obs[0]["date"]
-        try:
-            d = datetime.strptime(obs_date, "%Y-%m-%d").date()
-            days_since = (datetime.now(timezone.utc).date() - d).days
-        except Exception:
-            days_since = 0
+        obs_date = latest_obs[0].get("date_observed") or latest_obs[0].get("date")
+        if obs_date:
+            try:
+                d = datetime.strptime(obs_date, "%Y-%m-%d").date()
+                days_since = (datetime.now(timezone.utc).date() - d).days
+            except Exception:
+                days_since = 0
 
     if not latest_run or not latest_run.get("series"):
         # Return base placeholder if no run has been executed yet
         return DashboardSummaryOut(
             run_id=None,
-            period="Base Period",
-            headline_yoy=5.8, # Illustrative sample base (§0 Rule 7)
-            mom=0.4,
-            coverage=100.0,
-            basket_cost=2450.0,
-            purchasing_power_100=94.52,
+            period="No Run",
+            headline_yoy=0.0,
+            mom=0.0,
+            coverage=0.0,
+            basket_cost=0.0,
+            purchasing_power_100=100.0,
             open_flags_count=open_flags_count,
             data_freshness_days=days_since,
             latest_observation_date=obs_date,
-            basket_version_name="Illustrative sample basket"
+            basket_version_name="No Active Basket",
+            has_data=False
         )
 
     series = latest_run["series"]
@@ -215,7 +217,8 @@ def get_dashboard_summary():
         open_flags_count=open_flags_count,
         data_freshness_days=days_since,
         latest_observation_date=obs_date,
-        basket_version_name=latest_run.get("basket_name", "Official Basket")
+        basket_version_name=latest_run.get("basket_name", "Official Basket"),
+        has_data=True
     )
 
 
@@ -240,19 +243,21 @@ def get_dashboard_movers():
     items_cache = {i["id"]: i for i in ItemRepository().find({})}
     cats_cache = {c["id"]: c["name"] for c in CategoryRepository().find({})}
 
+    base_prices = latest_run.get("base_prices", {})
     movers = []
     for item_id, c in p_contrib.items():
         it = items_cache.get(item_id, {})
         rel_curr = c.get("relative_current", 1.0)
         rel_prev = c.get("relative_prev", 1.0)
         chg_pct = round(((rel_curr / rel_prev) - 1.0) * 100.0, 2) if rel_prev > 0 else 0.0
+        p0 = float(base_prices.get(item_id) or it.get("base_price", 40.0))
 
         movers.append(MoverItem(
             item_id=item_id,
             item_name=it.get("name", item_id),
             category_name=cats_cache.get(it.get("category_id", ""), "General"),
-            current_price=round(rel_curr * 50.0, 2), # estimated price
-            prev_price=round(rel_prev * 50.0, 2),
+            current_price=round(rel_curr * p0, 2),
+            prev_price=round(rel_prev * p0, 2),
             change_pct=chg_pct,
             points_contribution=round(c.get("points", 0.0), 3),
             canonical_unit=it.get("canonical_unit", "kg")
