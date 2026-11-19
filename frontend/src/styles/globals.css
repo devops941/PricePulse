@@ -1,0 +1,61 @@
+@import "@fontsource/young-serif/400.css";
+@import "@fontsource/rethink-sans/400.css";
+@import "@fontsource/rethink-sans/500.css";
+@import "@fontsource/rethink-sans/600.css";
+@import "@fontsource/rethink-sans/700.css";
+@import "@fontsource/fragment-mono/400.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --shelf: #F4F2F1;
+  --tile: #FFFFFF;
+  --ink: #231815;
+  --muted: #75675F;
+  --hairline: #DDD6D2;
+  --cocoa: #5B3A29;
+  --cocoa-deep: #3E2519;
+  --cocoa-wash: #EFE3DC;
+  --rise: #B93815;
+  --fall: #1F7A5A;
+  --steady: #6B7A8F;
+  --series-b: #3D5A80;
+  --series-c: #8A6D3B;
+  --warn: #A15C00;
+}
+
+/* Light theme enforcement */
+body {
+  background-color: var(--shelf);
+  color: var(--ink);
+  font-family: 'Rethink Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus ring standard from §10.8: 2px cocoa */
+*:focus-visible {
+  outline: 2px solid var(--cocoa);
+  outline-offset: 2px;
+}
+
+/* Tabular numerals rule §10.3 */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tag shape from §10.4 (angled top-left corner + punched hole) */
+.price-tag-shape {
+  position: relative;
+  clip-path: polygon(14px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 14px);
+}
+
+.price-tag-hole {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--shelf);
+  border: 1px solid var(--hairline);
+}
