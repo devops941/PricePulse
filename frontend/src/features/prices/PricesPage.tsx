@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/api';
 import { QuickPriceForm } from './QuickPriceForm';
 import { WeeklyPriceGrid } from './WeeklyPriceGrid';
 import { PriceRecordsTable } from './PriceRecordsTable';
+import { UploadConveyor } from '../upload/UploadConveyor';
 import { Skeleton } from '@/components/ui/FeedbackStates';
 import {
   IconFileSpreadsheet,
@@ -56,6 +57,7 @@ export const PricesPage: React.FC = () => {
           {[
             { id: 'quick', label: 'Quick Form', icon: IconReceipt2 },
             { id: 'grid', label: 'Weekly Grid', icon: IconFileSpreadsheet },
+            { id: 'upload', label: 'Upload Wizard', icon: IconUpload },
             { id: 'records', label: 'Price Records', icon: IconTable },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -107,6 +109,14 @@ export const PricesPage: React.FC = () => {
               onBatchSaved={() => {
                 fetchMasterData();
                 setActiveTab('records');
+              }}
+            />
+          )}
+
+          {activeTab === 'upload' && (
+            <UploadConveyor
+              onComplete={() => {
+                fetchMasterData();
               }}
             />
           )}
