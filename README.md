@@ -1,119 +1,151 @@
 # 🏷️ PricePulse — Retail Inflation Tracker & Essential Goods Basket Intelligence
 
-> **Institutional & Academic Notice:** All seed and synthetic price data is strictly labeled **"Illustrative Sample Data"** for academic, administrative, and algorithmic demonstration. It is not an official release of the Ministry of Statistics and Programme Implementation (MOSPI) or Reserve Bank of India (RBI).
+> **Institutional & Academic Notice:** All seed and synthetic price data is strictly labeled **"Illustrative Sample Data"** for academic, administrative, and algorithmic demonstration. It is not an official statistical release of the Ministry of Statistics and Programme Implementation (MOSPI) or Reserve Bank of India (RBI).
 
 ---
 
-## 📌 1. Project Overview (திட்டத்தின் கண்ணோட்டம்)
+## 📌 1. Project Overview
 
-**PricePulse** is a specialized retail price intelligence and inflation analytics platform. Traditional government CPI (Consumer Price Index) reports are released with a **30 to 45-day lag**, which is too slow for monitoring sudden market shocks, vegetable supply shortages, or local mandi price cartels.
+**PricePulse** is an institutional-grade retail price intelligence and high-frequency inflation analytics platform. Traditional consumer price index (CPI) reports published by central statistical offices typically suffer from a **30 to 45-day reporting lag**. During periods of rapid climate fluctuations, supply chain shocks, or market cartels, this reporting delay prevents policymakers, commercial buyers, and ordinary citizens from responding quickly to real-world price changes.
 
-PricePulse solves this by tracking a standardized **Essential Goods Basket of 15 core commodities** (Vegetables, Cereals, Pulses, Edible Oils, Dairy, Spices, and Sugar) across **6 retail and wholesale markets in 3 districts** on a high-frequency **weekly** reporting cadence.
+PricePulse bridges this critical intelligence gap by tracking an official **Essential Goods Basket of 15 core commodities** (Vegetables, Cereals, Pulses, Edible Oils, Dairy, Spices, and Sugar) across **6 representative retail and wholesale markets in 3 districts** on a high-frequency **weekly** reporting cycle.
 
-### What PricePulse Does:
-1. **Validates & Normalizes Ground Prices:** Ingests spot prices across units (kg, grams, litres, packets) and screens out typing mistakes or fraudulent data using **Median Absolute Deviation (MAD)** statistical anomaly detection.
-2. **Computes Laspeyres Fixed-Weight Index (idx-v1):** Calculates mathematically rigorous weekly and monthly inflation indices relative to a fixed base period ($I_0 = 100.00$).
-3. **Decomposes Inflation Drivers:** Mathematically proves which specific commodity pushed the index up or down through exact additive **Points Contribution ($C_{it}$)** decomposition.
-4. **Calculates Real Purchasing Power:** Measures the true purchasing power of a ₹100 banknote against the essential consumption bundle.
-5. **Projects Short-Term Price Trajectories:** Runs econometric models (**ARIMA, Holt-Winters Exponential Smoothing, Naive Baselines**) to generate 4-week forecasts with 80% and 95% confidence fan ribbons.
-6. **Groups Basket Volatility with K-Means:** Unsupervised machine learning clusters commodities into Low-Volatility Staples, Moderate Fluctuations, and High-Volatility Perishables.
-7. **Issues Publication-Grade Bulletins:** Generates print-ready, cryptographically verifiable PDF bulletins using ReportLab.
-
----
-
-## 💡 2. Real-Life Industry Examples (நிஜ வாழ்க்கை பயன்பாடுகள்)
-
-### 🌾 Scenario A: The Household Grocery Shock (குடும்ப பட்ஜெட் கண்காணிப்பு)
-* **Real-Life Situation:** Heavy monsoon rains in Karnataka and Andhra Pradesh disrupt tomato and chilli supply routes into Chennai. Within two weeks, tomato jumps from ₹28/kg to ₹72/kg.
-* **How PricePulse Helps:**
-  - The family or consumer group logs in to the **Dashboard Home**.
-  - They immediately see headline inflation rise to **+5.8%**, and the **Purchasing Power of ₹100** erode to **₹94.52** (a loss of ₹5.48 in real purchasing power).
-  - The **Points Contribution Breakdown** shows Tomato alone drove **+2.86 index points** of the total rise, proving it is a temporary perishable supply shock rather than broad-based monetary inflation.
-
-### 🏬 Scenario B: Wholesale Mandi vs. Supermarket Arbitrage (சந்தை விலை இடைவெளி)
-* **Real-Life Situation:** A small restaurant owner or canteen manager in Madurai buys 50 kg of onions, 20 kg of pulses, and 15 litres of sunflower oil every week.
-* **How PricePulse Helps:**
-  - They open the **Markets & Price Gaps (`/markets`)** module.
-  - The **Cheapest Basket Ranking** shows that buying from **Koyambedu Mandi** costs **₹1,240**, while an **Anna Nagar Retail Supermarket** costs **₹1,580** for the exact same basket (+27.4% retail markup).
-  - The **Dumbbell Gap Chart** pinpoints that Onion Sambhar has a spread of ₹16/kg (+50% margin). The restaurant owner immediately switches wholesale procurement to save ₹18,000 monthly.
-
-### 🛡️ Scenario C: Field Officer Data Entry Error Screening (தரவு பிழை கண்டறிதல்)
-* **Real-Life Situation:** A field collector in Coimbatore types the spot price of green chilli as **₹600/kg** instead of **₹60/kg** (an extra zero entered by mistake on mobile).
-* **How PricePulse Helps:**
-  - In a naive system, this 10x error would artificially spike the entire district's inflation index.
-  - In PricePulse, the **Ingestion Validator** detects that ₹600 exceeds the commodity's plausible ceiling (`max_plausible: 200.0`) and triggers a **MAD z-score of 4.8σ**.
-  - The record is **quarantined** and redirected to the **Review Desk (`/review`)**. An analyst reviews the outlier card, presses **`C`** to correct it to ₹60.00, preserving index accuracy.
-
-### 🏛️ Scenario D: Government Policy & Buffer Stock Intervention (அரசு கொள்முதல் திட்டம்)
-* **Real-Life Situation:** The Department of Civil Supplies notices Tur Dal climbing steadily from ₹145 to ₹168/kg over 4 consecutive weeks.
-* **How PricePulse Helps:**
-  - The policy team visits the **Forecasting Engine (`/forecast`)**.
-  - The **ARIMA(1,1,0)** model projects Tur Dal to breach **₹185/kg** within the next 4 weeks ($H+4$).
-  - Guided by this early warning, the state government releases buffer stocks through cooperative fair price shops (PDS) before prices reach crisis levels.
+### Core Capabilities:
+1. **Automated Ingestion & Physical Validation:** Ingests raw spot price observations across arbitrary measurement units (kg, grams, litres, millilitres, packets) and normalizes them into canonical units while screening out typographical errors using robust **Median Absolute Deviation (MAD)** statistical anomaly detection.
+2. **Laspeyres Fixed-Weight Index Engine (`idx-v1`):** Calculates mathematically rigorous weekly and monthly inflation indices relative to an official base period anchor ($I_0 = 100.00$).
+3. **Additive Points Contribution Decomposition:** Mathematically isolates and proves the exact degree to which individual commodities pushed the headline inflation rate up or down through exact additive **Points Contribution ($C_{it}$)** decomposition ($\sum C_{it} = I_t - I_{t-1}$).
+4. **Real Purchasing Power Measurement:** Quantifies the true erosion in the purchasing power of a standard ₹100 currency note against the active essential consumption bundle.
+5. **Short-Horizon Econometric Forecasting:** Deploys time-series models (**ARIMA, Holt-Winters Exponential Smoothing, and Naive baselines**) to generate 1-to-8-week forecasts with 80% and 95% uncertainty fan corridors.
+6. **K-Means Basket Volatility Clustering:** Uses unsupervised machine learning to classify commodities into actionable volatility cohorts: Low-Volatility Staples, Moderate Fluctuations, and High-Volatility Perishables.
+7. **Certified Print-Ready PDF Bulletins:** Automatically compiles and generates publication-grade, tamper-evident PDF bulletins powered by ReportLab.
 
 ---
 
-## 🧩 3. Module-by-Module Breakdown ("எந்த Module எதுக்கு Use பண்றோம்?")
+## 💡 2. Real-Life Industry Case Studies & Scenarios
 
-| Module Name | Route | What is it used for? (எதுக்கு Use பண்றோம்?) | Real-Life Example (யதார்த்த உதாரணம்) |
+### 🌾 Scenario A: The Salaried Household Grocery Budget Shock
+* **Real-World Situation:** Unseasonal monsoon downpours across major agricultural belts disrupt tomato and green chilli supply routes into metropolitan hubs. Within two weeks, tomato retail quotes surge from ₹28/kg to ₹75/kg.
+* **How PricePulse Delivers Value:**
+  - The household opens the **Dashboard Home (`/`)**.
+  - They immediately see the headline monthly inflation rate rise by **+5.8%**, while the **Purchasing Power of ₹100** drops to **₹94.52** (a direct ₹5.48 purchasing power loss on essential staples).
+  - The **Points Contribution Breakdown** reveals that Tomato alone drove **+2.86 index points** of the total inflation increase, providing empirical evidence that this is a transient perishable supply shock rather than structural monetary inflation.
+
+### 🏬 Scenario B: Wholesale Mandi vs. Supermarket Retail Arbitrage
+* **Real-World Situation:** A commercial restaurant operator or central kitchen manager purchases 50 kg of onions, 20 kg of pulses, and 15 litres of sunflower oil on a weekly basis.
+* **How PricePulse Delivers Value:**
+  - The buyer navigates to the **Markets & Price Gaps (`/markets`)** module.
+  - The **Cheapest Basket Ranking** shows that purchasing the bundle from **Koyambedu Wholesale Mandi** costs **₹1,240**, whereas procuring the identical basket from an **Anna Nagar Retail Supermarket** totals **₹1,580** (+27.4% retail premium).
+  - The **Dumbbell Price Spread Chart** demonstrates a ₹16/kg spread (+50% margin) on Onion Sambhar. The commercial buyer redirects orders directly to wholesale mandis, saving over ₹18,000 every month.
+
+### 🛡️ Scenario C: Field Data Surveyor Typographical Error Quarantine
+* **Real-World Situation:** A field surveyor in an agricultural terminal market accidentally types the spot price of green chilli as **₹600.00/kg** instead of **₹60.00/kg** (an unintentional extra zero entered on a mobile interface).
+* **How PricePulse Delivers Value:**
+  - In a standard database, this ten-fold entry error would corrupt the entire regional and headline inflation calculation.
+  - In PricePulse, the **Ingestion Validator** detects that ₹600 exceeds the commodity's pre-configured physical ceiling (`max_plausible: 200.0`) and flags a **MAD robust z-score of 4.8σ**.
+  - The corrupted observation is automatically **quarantined** and assigned to the **Review Desk (`/review`)**. A data analyst inspects the flagged card, presses key **`C`** to correct the value to ₹60.00, and recalculates the index without compromising historical accuracy.
+
+### 🏛️ Scenario D: Government Policy & Strategic Buffer Stock Release
+* **Real-World Situation:** The Department of Food & Civil Supplies monitors price trends of Tur Dal (Arhar), which has risen steadily from ₹145 to ₹168/kg over four consecutive reporting cycles.
+* **How PricePulse Delivers Value:**
+  - The market monitoring cell visits the **Forecasting Engine (`/forecast`)**.
+  - The automated **ARIMA(1,1,0)** model projects Tur Dal to cross **₹185/kg** within four weeks ($H+4$).
+  - Acting upon this early warning, authorities authorize the immediate release of strategic pulses buffer stocks through fair price cooperative distribution centers (PDS) before prices reach crisis levels for the public.
+
+---
+
+## 🧩 3. Comprehensive Module-by-Module Breakdown
+
+| Module Name | Route | Operational Purpose & Utility | Practical Industry Application |
 | :--- | :--- | :--- | :--- |
-| **Dashboard Home** | `/` | **Executive Intelligence & Real-Time Inflation Summary:** Displays the headline YoY/MoM inflation rate, monthly consumption basket cost, purchasing power of ₹100, dynamic Category Inflation Pressure matrix, top price movers (risers/fallers), and active review queue. | A senior economist or citizen checks the overall health of the food economy in 5 seconds to know if prices are rising or easing. |
-| **Index Engine** | `/index` | **Laspeyres Index Maths & Decomposition Engine:** Runs the official fixed-weight Laspeyres index ($I_t = 100 \sum w_i R_{it}$), chain-linking, period-by-period index ledger, and additive points contribution breakdown for every commodity. Supports arithmetic mean, median, and Jevons geometric mean aggregation. | An analyst audits whether the monthly inflation increase of +0.87% was caused by pulses or vegetables, and exports the certified run ledger to CSV. |
-| **Markets & Price Gaps** | `/markets` | **Regional Price Dispersion & Wholesale-Retail Arbitrage:** Ranks markets from cheapest to most expensive, plots regional price spreads with interactive Dumbbell charts, and displays small-multiples price time-series across Mandis vs Bazaars. | A consumer or retail watchdog compares whether wholesale mandi price cuts are actually being passed on to neighborhood supermarket shoppers. |
-| **Forecasting & Fans** | `/forecast` | **Time-Series Econometrics & Volatility Clustering:** Projects inflation and single-item price trajectories 1 to 8 weeks ahead using ARIMA, ETS, and Naive models with 80%/95% confidence intervals. Employs K-Means machine learning to group commodities by price stability. | Supply chain managers forecast festive season prices (e.g., sugar and edible oil before Diwali/Pongal) to decide advance warehouse procurement. |
-| **Prices & Weekly Grid** | `/prices` | **Spreadsheet-Style Ground Data Entry:** Allows field surveyors to enter price observations via a Quick Form, a high-speed keyboard-navigable 15-item Weekly Grid (with Excel copy-paste support), or view historical observation records. | Field data collection officers visiting Koyambedu or Madurai Mandi enter 15 commodity quotes simultaneously in less than 60 seconds. |
-| **Upload Conveyor** | `/prices` (Upload Tab) | **Bulk CSV/Excel Data Ingestion:** Uploads large price datasets with automatic header detection, interactive column mapping, SHA-256 deduplication, unit conversion, and dry-run preview before committing to the database. | District collection teams bulk-upload weekly price spreadsheets collected from 30 different markets with automated validation. |
-| **Review Desk** | `/review` | **Outlier Quarantine & Quality Desk:** Quarantines suspicious price observations exceeding physical plausible bounds or statistical MAD thresholds ($> 3.0\sigma$). Allows single-keystroke approval (`A`), inline correction (`C`), or rejection (`R`). | A data verification officer inspects an anomaly card where milk was entered at ₹540 instead of ₹54, correcting it before recalculating the index. |
-| **Official Bulletins** | `/bulletins` | **Automated PDF Publication Desk:** Generates four institutional PDF formats (Monthly Bulletin, Weekly Watchlist, Mandi Price Sheet, Regional Note) using ReportLab with cryptographic timestamps and custom chart renders. | The statistical department generates, downloads, and archives the official certified PDF inflation report for government press releases. |
-| **System Administration** | `/admin` | **Governance, Basket Weights & System Master Data:** Features an interactive proportional **WeightBar** ensuring 100% total weight allocation before activation, item plausible bounds editor, market active switches, live user roster, and audit trail. | A system administrator adjusts the weight of vegetables in the basket from 24% to 28% and creates a new basket version v2.0 with audit logging. |
+| **Dashboard Home** | `/` | **Executive Intelligence & Real-Time Inflation Summary:** Consolidates headline annual (YoY) and monthly (MoM) inflation figures, monthly consumption basket cost, purchasing power of ₹100, dynamic Category Inflation Pressure matrix, top price movers (risers/fallers), and active review queue. | Provides executive leadership, journalists, and citizens with an instantaneous 5-second snapshot of cost-of-living pressures and inflationary momentum. |
+| **Index Engine** | `/index` | **Laspeyres Index Maths & Contribution Decomposition:** Executes the formal fixed-weight Laspeyres index ($I_t = 100 \sum w_i R_{it}$), chain-linking for basket revisions, chronological index ledger auditing, and additive points contribution decomposition. Supports arithmetic mean, median, and Jevons geometric mean aggregation. | Enables statistical economists to audit whether an inflation rise was driven by food staples or energy, review period-by-period calculations, and export certified ledgers to CSV. |
+| **Markets & Price Gaps** | `/markets` | **Regional Price Dispersion & Wholesale-Retail Arbitrage:** Ranks markets from most economical to most expensive, plots regional price spreads with interactive Dumbbell charts, and visualizes price trends across mandis versus modern retail supermarkets. | Used by consumer protection boards and bulk procurement teams to verify if wholesale mandi price cuts are being passed down to neighborhood retail shoppers. |
+| **Forecasting & Fans** | `/forecast` | **Econometric Projections & Basket Volatility Clustering:** Projects overall inflation and individual commodity prices 1 to 8 weeks into the future using ARIMA, ETS, and Naive models with 80% and 95% confidence intervals. Implements K-Means clustering to segment goods by historical price volatility. | Used by supply chain managers and agricultural departments to forecast festive commodity demand (e.g., sugar and edible oil before major festivals) and plan warehouse inventory. |
+| **Prices & Weekly Grid** | `/prices` | **Spreadsheet-Style Ground Data Entry:** Enables field surveyors to record price observations through a single-item Quick Form, a high-speed keyboard-navigable 15-item Weekly Grid (featuring full Excel copy-paste functionality), or a filtered historical observations table. | Allows field data collection officers visiting wholesale terminal mandis to input a complete weekly price sweep of 15 commodities in under 60 seconds. |
+| **Upload Conveyor** | `/prices` (Upload Tab) | **High-Throughput CSV/Excel Ingestion Wizard:** Imports large price datasets with automated header discovery, interactive column mapping, cryptographic SHA-256 deduplication, unit conversion, and dry-run preview validation. | Empowers regional administrative teams to bulk-upload weekly price spreadsheets submitted from 30+ disparate regional markets with zero data loss. |
+| **Review Desk** | `/review` | **Outlier Quarantine & Quality Assurance Queue:** Automatically isolates suspicious price observations exceeding physical bounds or statistical MAD thresholds ($> 3.0\sigma$). Features rapid single-keystroke approval (`A`), inline editing (`C`), or rejection (`R`). | Quality assurance supervisors review quarantined items (e.g., unit-of-measure mix-ups or data entry typos) before certifying calculations for the public domain. |
+| **Official Bulletins** | `/bulletins` | **Automated Publication & Certified PDF Desk:** Generates four standardized institutional publication formats (Monthly Bulletin, Weekly Watchlist, Mandi Price Sheet, Regional Note) using ReportLab with cryptographic timestamps and embedded vector charts. | Enables administrative agencies to generate, download, and archive officially certified PDF inflation bulletins for immediate press distribution. |
+| **System Administration** | `/admin` | **Governance, Basket Weights & Master Catalog Management:** Features an interactive proportional **WeightBar** ensuring 100% total expenditure weight allocation before activation, item plausible bounds editor, market active switches, live user roster, and audit logs. | Administrators can adjust basket weights, configure new basket versions (v2.0), manage role permissions, and maintain a tamper-evident administrative audit log. |
 
 ---
 
-## 🛠️ 4. Technical Stack (தொழில்நுட்ப கட்டமைப்பு)
+## 🛠️ 4. Technical Architecture & Stack
 
-### 🎨 Frontend Architecture
-- **Framework:** React 18 with TypeScript (Strict Type Safety)
-- **Build Tool:** Vite 5 (Sub-second HMR & optimized production bundling)
-- **Styling System:** Tailwind CSS with custom **Shelf Tag** editorial palette:
-  - Cocoa Brown (`#5B3A29`) — Primary brand, serif typography, header tags
-  - Shelf Paper (`#F4F2F1`) — Neutral background canvas
+```
+PricePulse Monorepo Architecture:
+├── backend/
+│   ├── app/
+│   │   ├── main.py                     # FastAPI application factory & global error handlers
+│   │   ├── core/                       # Config (pydantic-settings), database, logging, bootstrap
+│   │   ├── api/v1/routers/             # Typed REST routers (auth, master, prices, uploads, index, markets, forecasts, anomalies, reports)
+│   │   ├── schemas/                    # Pydantic v2 validation contracts & response models
+│   │   ├── repositories/               # PyMongo database layer with mongomock fallback
+│   │   ├── analytics/                  # Statistical & econometric algorithms:
+│   │   │   ├── prices.py               # Aggregation (mean, median, Jevons geometric mean)
+│   │   │   ├── index.py                # Laspeyres fixed-weight engine & canonical baselines
+│   │   │   ├── chain.py                # Chain-linking for basket updates
+│   │   │   ├── contributions.py        # Additive mathematical points decomposition
+│   │   │   ├── anomalies.py            # MAD robust z-scores & physical sanity gates
+│   │   │   └── forecast.py             # ETS, ARIMA, Naive, rolling-origin cross-validation, fan corridors
+│   │   └── reports/
+│   │       └── pdf_bulletin.py         # ReportLab PDF compiler with Shelf Tag typography
+│   ├── scripts/
+│   │   ├── seed_demo.py                # 52 weeks synthetic prices, 15 items, 6 markets, initial index run
+│   │   └── clear_db.py                 # Clean database initialization utility
+│   └── tests/                          # Automated test suites (Golden dataset, API, validation, auth)
+└── frontend/
+    ├── src/
+    │   ├── features/                   # Home, Prices, Index, Markets, Forecast, Review, Bulletins, Admin
+    │   ├── components/                 # Shelf Tag design system:
+    │   │   ├── bento/                  # BentoGrid, BentoTile
+    │   │   ├── charts/                 # IndexLineChart, WaterfallChart, DumbbellChart, FanChart
+    │   │   └── ui/                     # HeroNumber (350ms count-up), ChangeBadge (▲▼■), StatusPill
+    │   └── lib/                        # apiFetch HTTP client, auth provider, number formatters
+```
+
+### 🎨 Frontend Technologies
+- **Core Library:** React 18 with TypeScript
+- **Bundler:** Vite 5 (Sub-second hot module replacement & tree-shaken production bundles)
+- **Styling Architecture:** Tailwind CSS styled with the custom **Shelf Tag** design system:
+  - Cocoa Brown (`#5B3A29`) — Primary editorial brand, serif headlines, button tags
+  - Shelf Paper (`#F4F2F1`) — Neutral reading background canvas
   - Warm Hairline (`#DDD6D2`) — Editorial dividers and card borders
   - Price Rise Red (`#8F2D17`) & Price Fall Green (`#2D6A4F`)
-- **Typography:** Young Serif (display headers), Rethink Sans (body), Fragment Mono (numbers & indicators)
-- **Data Visualizations:** Recharts & custom SVG renderers (Index trend series, Waterfall decomposition, Fan corridors, Dumbbell spreads)
+- **Typography:** Young Serif (editorial headers), Rethink Sans (body text), Fragment Mono (numerics & indicators)
+- **Visualizations:** Recharts & bespoke responsive SVG components (Brush scrubber, Waterfall, Fan corridors, Dumbbell charts)
 - **Iconography:** Tabler Icons React (`@tabler/icons-react`)
-- **State & Data Fetching:** TanStack React Query v5 & Native Fetch API with auto-revalidation
-- **Toasts & Feedback:** Sonner notification system
+- **State Management & Querying:** TanStack React Query v5 & Native Fetch API with caching
+- **Notifications:** Sonner interactive toast system
 
-### ⚙️ Backend Architecture
-- **Language & Runtime:** Python 3.12+
-- **API Framework:** FastAPI (High-performance async ASGI architecture)
-- **Validation & Schemas:** Pydantic v2 (Strict request/response serialization contracts)
-- **Server:** Uvicorn ASGI production server
-- **Database Layer:** PyMongo with native MongoDB Atlas connectivity and seamless in-memory `mongomock` engine for zero-configuration offline execution
-- **Authentication & Security:** JWT (JSON Web Tokens) HS256 with 30-minute access tokens, 7-day refresh tokens, passlib bcrypt password hashing, and Role-Based Access Control (`Admin`, `Analyst`, `Collector`, `Viewer`)
+### ⚙️ Backend Technologies
+- **Runtime:** Python 3.12+
+- **Web Framework:** FastAPI (High-performance async ASGI architecture)
+- **Validation Engine:** Pydantic v2 (Strict request validation and data transformation)
+- **ASGI Web Server:** Uvicorn
+- **Database Architecture:** PyMongo driver with MongoDB Atlas support and an integrated in-memory `mongomock` engine for zero-configuration local development
+- **Security & Authorization:** JWT (HS256) access tokens, refresh tokens, bcrypt password hashing, and Role-Based Access Control (`Admin`, `Analyst`, `Collector`, `Viewer`)
 
-### 📊 Statistical & Machine Learning Engines
-- **Laspeyres Index Formula Engine:** Pure Python vectorised calculation ($I_t = 100 \sum w_i R_{it}$)
-- **Mathematical Points Decomposition:** Exact additive item point contribution ($C_{it} = 100 \cdot w_i \cdot \Delta R_{it}$) verified to $10^{-9}$ floating-point tolerance
-- **Econometric Time-Series:** Statsmodels (ARIMA `(1,1,0)`, SimpleExpSmoothing ETS, Naive rolling-origin baselines)
-- **Unsupervised Machine Learning:** Scikit-Learn (K-Means Clustering on Coefficient of Variation `CV%` and price momentum)
-- **Outlier Detection:** Median Absolute Deviation (MAD) robust z-scores ($1.4826 \times \text{MAD}$)
-- **Document Engine:** ReportLab PDF rendering with custom Flowables and canvas page numbering
+### 📊 Mathematical & Statistical Libraries
+- **Laspeyres Index Maths:** Pure Python vectorized implementations verified against baseline benchmark datasets
+- **Points Decomposition:** Exact mathematical decomposition ($C_{it} = 100 \cdot w_i \cdot \Delta R_{it}$) verified to $10^{-9}$ numerical precision
+- **Econometric Forecasting:** Statsmodels (ARIMA `(1,1,0)`, SimpleExpSmoothing ETS, Naive rolling-origin baselines)
+- **Unsupervised Machine Learning:** Scikit-Learn (K-Means Clustering on price volatility CV% and momentum)
+- **Outlier Detection:** NumPy-based Median Absolute Deviation (MAD) ($1.4826 \times \text{MAD}$)
+- **Document Generation:** ReportLab PDF Engine with custom layout Flowables
 
 ---
 
-## 🚀 5. How to Run This Project (எப்படி Run பண்ணுவது?)
+## 🚀 5. How to Run This Project (Step-by-Step Guide)
 
-### System Requirements
+### Prerequisites
 - **Python:** Version 3.12 or higher ([Download Python](https://www.python.org/downloads/))
 - **Node.js:** Version 18.0 or higher ([Download Node.js](https://nodejs.org/))
-- **Operating System:** Windows 10/11, macOS, or Linux
+- **Git:** Version 2.20 or higher ([Download Git](https://git-scm.com/))
 
 ---
 
-### Step 1: Clone or Navigate to the Project
-Open **PowerShell** (on Windows) or **Terminal** (on Mac/Linux) and navigate to the project directory:
+### Step 1: Open Terminal in Project Root
+Open **PowerShell** (Windows) or **Terminal** (macOS/Linux) in the project root directory:
 ```powershell
 cd "d:\gokul\collage-python-project\PricePulse – Retail Inflation Tracker & Essential Goods Basket"
 ```
@@ -121,122 +153,122 @@ cd "d:\gokul\collage-python-project\PricePulse – Retail Inflation Tracker & Es
 ---
 
 ### Step 2: Configure Environment Files
-Ensure `.env` files exist in both the root and frontend directories:
+Ensure `.env` configuration files exist for both backend and frontend:
 ```powershell
-# Copy example environment files if not already present
+# Copy template configurations if not already created
 Copy-Item .env.example .env
 Copy-Item frontend\.env.example frontend\.env
 ```
 
-> **Note on Database:** By default, `.env` includes `USE_MOCK_DB=true`. This runs a high-speed, 100% in-memory database using `mongomock`, requiring **no local MongoDB installation or cloud connection**. If you wish to connect to a real MongoDB Atlas cluster, set `USE_MOCK_DB=false` and provide your Atlas URI in `MONGODB_URI`.
+> **Zero-Setup Database Mode:** By default, `.env` is configured with `USE_MOCK_DB=true`. This runs a high-speed, 100% in-memory database using `mongomock`, eliminating the need to install or configure MongoDB locally. If connecting to a live MongoDB Atlas cluster, set `USE_MOCK_DB=false` and insert your Atlas connection string in `MONGODB_URI`.
 
 ---
 
 ### Step 3: Setup & Launch Backend Server
 
 ```powershell
-# 1. Navigate to backend directory
+# 1. Navigate to the backend directory
 cd backend
 
 # 2. Create Python virtual environment (if not already created)
 python -m venv venv
 
 # 3. Activate virtual environment
-# On Windows PowerShell:
+# Windows PowerShell:
 .\venv\Scripts\Activate.ps1
-# (On macOS/Linux: source venv/bin/activate)
+# (macOS/Linux: source venv/bin/activate)
 
 # 4. Install backend dependencies
 pip install -r requirements.txt
 
-# 5. Start the FastAPI backend server
+# 5. Launch the FastAPI server
 python -m uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000 --reload
 ```
-The backend API will be live at:
-👉 **http://localhost:8000**  
-👉 **API Interactive Swagger Docs:** http://localhost:8000/docs
+The backend API service will be accessible at:
+- **API Server:** http://localhost:8000
+- **Swagger Interactive API Documentation:** http://localhost:8000/docs
 
 ---
 
-### Step 4: Setup & Launch Frontend Server
+### Step 4: Setup & Launch Frontend Application
 
-Open a **second terminal window** and run:
+Open a **second terminal window** in the project directory and execute:
 ```powershell
-# 1. Navigate to frontend directory
+# 1. Navigate to the frontend directory
 cd "d:\gokul\collage-python-project\PricePulse – Retail Inflation Tracker & Essential Goods Basket\frontend"
 
 # 2. Install Node dependencies
 npm install
 
-# 3. Start Vite dev server
+# 3. Start the Vite development server
 npm run dev
 ```
-The frontend application will be live at:
-👉 **http://localhost:5173**
+The web application interface will be live at:
+- **Frontend Application:** http://localhost:5173
 
 ---
 
-### Step 5: Log in to the Application
+### Step 5: Log In with Administrator Credentials
 
-Open your browser and navigate to **http://localhost:5173**. Use the Super Administrator credentials:
+Open your browser and navigate to **http://localhost:5173**. Log in with the pre-configured Super Administrator account:
 
 | Field | Credentials |
 | :--- | :--- |
 | **Email** | `admin@gmail.com` |
 | **Password** | `Admin@123` |
-| **Role** | **Super Admin** (Full unrestricted access across all modules) |
+| **Role** | **Super Admin** (Full unrestricted access across all system features) |
 
 ---
 
-### Step 6: 1-Click Baseline Seeding
-If you start on a fresh database:
+### Step 6: One-Click 52-Week Baseline Seeding
+When running the application for the first time:
 1. Navigate to **Index Engine (`/index`)** or **Dashboard (`/`)**.
-2. Click the **`+ Seed 52-Wk Baseline`** button in the header bar.
-3. This automatically seeds 15 essential goods, 6 markets across 3 districts, 52 weeks of synthetic price observations, and computes the official baseline index run. All cards, charts, forecasts, and clusters will immediately come alive with full interactive data!
+2. Click the **`+ Seed 52-Wk Baseline`** button in the top navigation bar.
+3. This automatically seeds 15 essential goods, 6 markets across 3 districts, 52 weeks of synthetic price observations, and executes the official baseline index run. All cards, charts, forecasts, and volatility clusters will immediately populate with full interactive time-series data.
 
 ---
 
-## 🧪 6. Verification & Automated Testing
+## 🧪 6. Testing & Quality Verification
 
-You can run automated test suites to verify math and system integrity:
+You can execute automated test suites to verify mathematical accuracy and system health:
 
 ```powershell
 # Run backend statistical unit & integration tests
 cd backend
 .\venv\Scripts\python -m pytest tests/ -v
 
-# Run frontend production build check
+# Run frontend TypeScript type-checking and production build
 cd ../frontend
 npm run build
 ```
-- ✅ **Mathematical Precision:** `test_golden_index.py` verifies Laspeyres formula and Points Contribution to $10^{-9}$ accuracy.
-- ✅ **Production Build:** Vite produces optimized bundles with zero TypeScript or JSX compile errors.
+- ✅ **Mathematical Precision:** `test_golden_index.py` verifies the Laspeyres index formula and Points Contribution to $10^{-9}$ precision.
+- ✅ **Production Quality:** Vite build compiles with zero TypeScript errors or warnings.
 
 ---
 
 ## 📐 7. Mathematical & Statistical Reference Table
 
-| Formula / Concept | Mathematical Equation | Purpose in PricePulse |
+| Formula / Concept | Mathematical Equation | Function within PricePulse |
 | :--- | :--- | :--- |
-| **Laspeyres Price Index** | $$I_t = 100 \sum_{i=1}^n w_i \left(\frac{P_{it}}{P_{i0}}\right)$$ | Measures overall retail price change of a fixed consumption basket relative to base period $0$. |
-| **Purchasing Power of ₹100** | $$\text{PP}_{100} = \frac{10000}{I_t}$$ | Demonstrates real consumer rupee value erosion (e.g. if $I_t = 105.09$, ₹100 buys ₹95.15 worth of goods). |
-| **Points Contribution Decomposition** | $$C_{it} = 100 \cdot w_i \cdot \left(R_{it} - R_{i,t-1}\right)$$ | Breaks down total index change into exact commodity drivers ($\sum C_{it} = I_t - I_{t-1}$). |
-| **Median Absolute Deviation (MAD)** | $$\text{MAD} = \text{median}\left(\|P_i - \text{median}(P)\|\right)$$ | Robust statistical screening resistant to extreme outliers for quarantine in the Review Desk. |
-| **Robust Z-Score** | $$z = \frac{\|P_i - \text{median}(P)\|}{1.4826 \cdot \text{MAD}}$$ | Identifies price anomalies exceeding $3.0\sigma$ without being distorted by the outlier itself. |
-| **Chain-Linking Ratio** | $$I_t^{\text{chained}} = I_k^{\text{old}} \times \frac{I_t^{\text{new}}}{100}$$ | Slices and splices updated basket weight revisions seamlessly without historical discontinuity. |
+| **Laspeyres Price Index** | $$I_t = 100 \sum_{i=1}^n w_i \left(\frac{P_{it}}{P_{i0}}\right)$$ | Quantifies the aggregate retail price change of a fixed consumption basket relative to base period $0$. |
+| **Purchasing Power of ₹100** | $$\text{PP}_{100} = \frac{10000}{I_t}$$ | Calculates real consumer rupee value erosion (e.g., if $I_t = 105.09$, ₹100 purchases ₹95.15 worth of goods). |
+| **Points Contribution Decomposition** | $$C_{it} = 100 \cdot w_i \cdot \left(R_{it} - R_{i,t-1}\right)$$ | Exactly attributes aggregate index movement to specific item price shifts ($\sum C_{it} = I_t - I_{t-1}$). |
+| **Median Absolute Deviation (MAD)** | $$\text{MAD} = \text{median}\left(\|P_i - \text{median}(P)\|\right)$$ | Outlier-resistant statistical scale parameter used to screen incoming prices in the Review Desk. |
+| **Robust Z-Score** | $$z = \frac{\|P_i - \text{median}(P)\|}{1.4826 \cdot \text{MAD}}$$ | Identifies price spikes exceeding $3.0\sigma$ without distortion from extreme outliers. |
+| **Chain-Linking Equation** | $$I_t^{\text{chained}} = I_k^{\text{old}} \times \frac{I_t^{\text{new}}}{100}$$ | Slices and splices historical index series across basket weight revisions without historical disruption. |
 
 ---
 
-## 👥 8. Security & Access Control
+## 👥 8. Security & Role-Based Permissions
 
-| Role | Access Permissions |
+| Role | System Privileges |
 | :--- | :--- |
-| **Admin** | Full access to Basket Builder, Master Catalog, Plausible Bounds, User Roles, Review Desk, and PDF Bulletins. |
-| **Analyst** | Access to Dashboard, Index Engine, Forecasting, Markets, and PDF Generation. Read-only for Admin settings. |
-| **Field Collector** | Access to Weekly Price Grid, Quick Price Form, and CSV Upload Conveyor. |
-| **Public Viewer** | Read-only access to published bulletins, landing page, and headline dashboard summary. |
+| **Admin** | Unrestricted access: Basket Builder, Master Catalog CRUD, Plausible Bounds, User Roles, Review Desk, and PDF Bulletins. |
+| **Analyst** | Analytical access: Dashboard, Index Engine, Forecasting, Markets, and PDF Generation. Read-only for Admin settings. |
+| **Field Collector** | Data capture access: Weekly Price Grid, Quick Price Form, and CSV Upload Conveyor. |
+| **Public Observer** | Read-only access: Published bulletins, landing page metrics, and headline dashboard summary. |
 
 ---
 
 ## 📄 License & Academic Integrity
-Developed as a comprehensive retail inflation intelligence software project for academic and analytical demonstration. All code and designs follow modern clean architecture principles.
+Developed as a retail price intelligence and high-frequency inflation analytics platform for academic and analytical demonstration. All architectural patterns, econometric models, and visual styling follow modern software engineering best practices.
