@@ -15,7 +15,7 @@ from app.core.errors import (
     validation_exception_handler,
     generic_exception_handler
 )
-from app.api.v1.routers import health, auth
+from app.api.v1.routers import health, auth, master
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -54,6 +54,7 @@ def create_app() -> FastAPI:
     # Include routers under /api/v1
     app.include_router(health.router, prefix="/api/v1")
     app.include_router(auth.router, prefix="/api/v1")
+    app.include_router(master.router, prefix="/api/v1")
 
     @app.get("/")
     def root():

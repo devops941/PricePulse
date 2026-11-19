@@ -3,6 +3,7 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { LoginPage } from './features/auth/LoginPage';
+import { AdminPage } from './features/admin/AdminPage';
 import { DesignShowcase } from './features/design/DesignShowcase';
 import { PriceTagNav } from './components/nav/PriceTagNav';
 import { CommandPalette } from './components/ui/CommandPalette';
@@ -31,6 +32,14 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/design" element={<DesignShowcase />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={
